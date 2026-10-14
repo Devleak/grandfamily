@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grandfamily</title>
+<style>
+:root{
+  --bg:#0f0f0f; --surface:#161616; --surface2:#1e1e1e; --border:#272727; --border-light:#333;
+  --text:#f0ede8; --muted:#7a756e; --accent:#d4a24e; --accent-dim:#2e2310;
+  --good:#5fa05f; --good-dim:#162316; --danger:#b85252; --danger-dim:#241414;
+  --blue:#4a9eda; --blue-dim:#0e1f2e;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:14px; display:flex; flex-direction:column;
+}
+
+/* ── top bar ── */
+.topbar{
+  height:54px; background:var(--bg); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 18px; gap:14px;
+  flex-shrink:0; z-index:20; position:sticky; top:0;
+}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;letter-spacing:-.2px;}
+.brand-icon{
+  width:28px;height:28px;border-radius:6px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;color:#1a0e00;flex-shrink:0;
+}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.search-bar{
+  background:var(--surface); border:1px solid var(--border-light); border-radius:6px;
+  padding:7px 12px; color:var(--text); font-size:13px; width:200px;
+}
+.search-bar:focus{outline:2px solid var(--accent);outline-offset:-1px;}
+
+/* ── layout ── */
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* ── sidebar ── */
+.sidebar{
+  width:220px; flex-shrink:0; background:var(--surface);
+  border-right:1px solid var(--border); display:flex; flex-direction:column;
+  padding:16px 10px; gap:4px; overflow-y:auto;
+}
+.sidebar-section{
+  font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;
+  padding:10px 8px 4px; text-transform:uppercase;
+}
+.sidebar-section:first-child{padding-top:0;}
+.slink{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;
+  border-radius:6px;font-size:13px;font-weight:500;color:var(--muted);
+  background:transparent;border:none;width:100%;text-align:left;cursor:pointer;
+  transition:background .12s,color .12s;
+}
+.slink:hover{background:var(--surface2);color:var(--text);}
+.slink.active{background:var(--accent-dim);color:var(--accent);font-weight:600;}
+.slink svg,.slink .sicon{width:16px;height:16px;flex-shrink:0;opacity:.7;}
+.slink.active svg,.slink.active .sicon{opacity:1;}
+.sidebar-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--border);}
+.user-chip{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;
+  cursor:pointer; background:transparent;border:none;width:100%;text-align:left;
+}
+.user-chip:hover{background:var(--surface2);}
+.user-chip-avatar{
+  width:30px;height:30px;border-radius:50%;background:var(--surface2);
+  border:1px solid var(--border-light);flex-shrink:0;object-fit:cover;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.user-chip-info{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.user-chip-name{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-chip-sub{font-size:10.5px;color:var(--muted);}
+.badge-verified{color:var(--blue);font-weight:700;}
+.badge-owner{color:var(--accent);font-weight:700;}
+
+/* ── main content ── */
+.content{flex:1;overflow-y:auto;padding:28px 28px 80px;}
+.hero{padding-bottom:20px;margin-bottom:18px;border-bottom:1px solid var(--border);}
+.hero h1{font-size:20px;font-weight:700;margin-bottom:4px;}
+.hero p{font-size:12.5px;color:var(--muted);}
+
+/* ── filters ── */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.chip{
+  padding:5px 11px;border-radius:20px;border:1px solid var(--border-light);
+  background:transparent;font-size:11.5px;color:var(--muted);font-weight:600;cursor:pointer;
+}
+.chip:hover{border-color:var(--text);color:var(--text);}
+.chip.on{background:var(--accent-dim);color:var(--accent);border-color:var(--accent);}
+
+/* ── grid ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1px;background:var(--border);}
+.card{
+  background:var(--bg);padding:16px;display:flex;flex-direction:column;gap:9px;
+  border-left:2px solid var(--accent);
+}
+.card .tag{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;}
+.card h3{font-size:14px;font-weight:600;}
+.card .desc{color:var(--muted);font-size:12px;line-height:1.55;flex:1;}
+.card .meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);}
+.card .seller-name{display:flex;align-items:center;gap:5px;}
+.price{font-size:16px;font-weight:700;}
+.card .row{display:flex;gap:7px;}
+.card .row .btn{flex:1;}
+
+/* ── buttons ── */
+.btn{
+  border:1px solid var(--border-light);background:var(--surface);color:var(--text);
+  padding:7px 13px;font-size:12.5px;font-weight:600;border-radius:5px;cursor:pointer;
+  font-family:inherit;transition:border-color .12s,opacity .12s;
+}
+.btn:hover{border-color:var(--text);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1a0e00;}
+.btn.primary:hover{opacity:.88;}
+.btn.ghost{background:transparent;}
+.btn.danger{background:var(--danger-dim);border-color:var(--danger);color:#f0b8b8;}
+.btn.good{background:var(--good-dim);border-color:var(--good);color:#b0deb0;}
+.btn.blue{background:var(--blue-dim);border-color:var(--blue);color:#a8d4f0;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn.sm{padding:5px 9px;font-size:11.5px;}
+.btn.full{width:100%;margin-top:9px;}
+
+/* ── overlays ── */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;
+  align-items:center;justify-content:center;z-index:100;padding:20px;
+}
+.overlay.show{display:flex;}
+.modal{
+  background:var(--surface);border:1px solid var(--border-light);border-radius:8px;
+  width:100%;max-width:380px;padding:24px;position:relative;
+  max-height:90vh;overflow-y:auto;
+}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:4px;}
+.modal .sub{color:var(--muted);font-size:12.5px;margin-bottom:16px;}
+.close-btn{position:absolute;top:13px;right:13px;background:none;border:none;color:var(--muted);font-size:17px;cursor:pointer;}
+label{font-size:11px;color:var(--muted);font-weight:700;display:block;margin:11px 0 4px;letter-spacing:.2px;}
+input[type=text],input[type=password],input[type=email],textarea,select{
+  width:100%;background:var(--bg);border:1px solid var(--border-light);color:var(--text);
+  padding:8px 11px;border-radius:5px;font-size:13px;font-family:inherit;
+}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px;}
+.err{color:var(--danger);font-size:11.5px;min-height:14px;margin-top:6px;}
+.hint{color:var(--muted);font-size:11px;margin-top:3px;}
+.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;margin:13px 0;}
+.divider:before,.divider:after{content:"";height:1px;background:var(--border);flex:1;}
+
+/* ── currencies ── */
+.currencies{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:7px;}
+.curr{
+  border:1px solid var(--border-light);background:var(--bg);border-radius:5px;
+  padding:10px 6px;text-align:center;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;
+}
+.curr:hover{border-color:var(--text);}
+.curr.on{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.curr .icon{font-size:14px;margin-bottom:4px;}
+
+/* ── confirm modal ── */
+.confirm-row{display:flex;gap:8px;margin-top:16px;}
+.confirm-row .btn{flex:1;}
+
+/* ── profile ── */
+.profile-wrap{max-width:440px;}
+.pfp-upload-area{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:20px;background:var(--surface2);border:1px dashed var(--border-light);
+  border-radius:8px;margin-bottom:4px;cursor:pointer;
+  transition:border-color .15s;
+}
+.pfp-upload-area:hover{border-color:var(--accent);}
+.pfp-preview{
+  width:80px;height:80px;border-radius:50%;background:var(--surface);
+  border:2px solid var(--border-light);object-fit:cover;
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+}
+.pfp-upload-area input[type=file]{display:none;}
+.pfp-upload-label{font-size:12px;color:var(--muted);text-align:center;}
+.pfp-upload-label b{color:var(--accent);}
+.profile-badge-row{display:flex;align-items:center;gap:8px;margin:12px 0 4px;}
+
+/* ── chat ── */
+.chatbtn{
+  position:fixed;bottom:20px;right:20px;z-index:40;
+  width:44px;height:44px;border-radius:8px;background:var(--surface);
+  border:1px solid var(--border-light);color:var(--text);font-size:16px;cursor:pointer;
+}
+.chatpanel{
+  position:fixed;bottom:72px;right:20px;width:300px;height:420px;
+  background:var(--surface);border:1px solid var(--border-light);border-radius:8px;
+  display:none;flex-direction:column;z-index:40;overflow:hidden;
+}
+.chatpanel.show{display:flex;}
+.chathead{
+  padding:11px 13px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.chathead .back{background:none;border:none;color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;}
+.convlist,.chatbody{flex:1;overflow-y:auto;}
+.chatbody{display:none;padding:12px;flex-direction:column;gap:8px;}
+.convitem{
+  padding:10px 13px;border-bottom:1px solid var(--border);font-size:12.5px;
+  display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+}
+.convitem:hover{background:var(--surface2);}
+.msg{max-width:80%;padding:7px 10px;border-radius:5px;font-size:12px;line-height:1.4;}
+.msg.them{background:var(--surface2);align-self:flex-start;}
+.msg.me{background:var(--accent-dim);border:1px solid var(--accent);align-self:flex-end;}
+.chatfoot{display:none;gap:6px;padding:8px;border-top:1px solid var(--border);}
+.chatfoot input{flex:1;}
+.empty-state{color:var(--muted);font-size:12px;text-align:center;padding:40px 16px;}
+
+/* ── announcement bar ── */
+.ann-bar{
+  background:var(--surface2);border-bottom:1px solid var(--border);
+  padding:9px 18px;font-size:12.5px;display:none;align-items:center;gap:10px;
+  flex-shrink:0;
+}
+.ann-bar.show{display:flex;}
+.ann-badge{font-weight:700;color:var(--accent);font-size:11.5px;letter-spacing:.3px;white-space:nowrap;}
+.ann-close{background:none;border:none;color:var(--muted);font-size:14px;margin-left:auto;cursor:pointer;padding:0 2px;}
+
+/* ── toast ── */
+.toast{
+  position:fixed;top:14px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--accent);color:var(--text);
+  padding:9px 17px;border-radius:5px;font-size:12.5px;font-weight:600;
+  z-index:300;display:none;white-space:nowrap;
+}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:60px 20px;grid-column:1/-1;}
+
+/* ── admin section ── */
+.admin-row{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  background:var(--surface);border:1px solid var(--border);padding:12px 15px;
+  margin-bottom:7px;border-radius:6px;
+}
+.admin-row .info{display:flex;flex-direction:column;gap:3px;}
+.admin-row .info b{font-size:13px;}
+.admin-row .info span{font-size:11px;color:var(--muted);}
+.section-label{font-size:11px;font-weight:700;color:var(--muted);margin:22px 0 9px;text-transform:uppercase;letter-spacing:.5px;}
+.btn-group{display:flex;gap:6px;flex-shrink:0;}
+
+/* ── discord login btn ── */
+.discordbtn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:9px;
+  background:#5865F2;color:#fff;border:none;padding:10px;border-radius:5px;
+  font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;
+}
+.discordbtn:hover{opacity:.9;}
+.discordbtn:disabled{opacity:.6;}
+</style>
+</head>
+<body>
+
+<!-- Announcement bar -->
+<div class="ann-bar" id="annBar">
+  <span class="ann-badge">📢 DEVLEAK</span>
+  <span id="annText"></span>
+  <button class="ann-close" id="annClose">✕</button>
+</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">GF</div>
+    Grandfamily
+  </div>
+  <div class="topbar-right">
+    <input class="search-bar" id="searchBox" type="text" placeholder="Search scripts…">
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Menu</div>
+    <button class="slink active" data-view="shop">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12a1 1 0 011 1v1H1V3a1 1 0 011-1zm-.5 3h13l-1.2 8H2.7L1.5 5z"/></svg>
+      Home
+    </button>
+    <button class="slink" data-view="sell">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm.75 10.5h-1.5v-4.5h1.5v4.5zm0-6h-1.5v-1.5h1.5v1.5z"/></svg>
+      Sell
+    </button>
+    <button class="slink" id="verifyNavBtn" data-view="verify" style="display:none">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 4v4c0 3.3 3 6.1 7 7 4-0.9 7-3.7 7-7V4L8 1zm3.1 5.6l-3.8 3.8-1.4-1.4L7 10l1.4-1.3L6.3 7.1l1.4-1.4L9.1 7l1.6-1.8 1.4 1.4z"/></svg>
+      Verification
+    </button>
+    <button class="slink" id="adminNavBtn" data-view="admin" style="display:none">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a2 2 0 012 2v1h2a1 1 0 011 1v8a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1h2V3a2 2 0 012-2zm0 1.5A.5.5 0 007.5 3v1h1V3A.5.5 0 008 2.5z"/></svg>
+      Admin
+    </button>
+
+    <!-- User chip at bottom -->
+    <div class="sidebar-bottom" id="sidebarBottom">
+      <button class="btn ghost full" id="sideLoginBtn" style="width:100%;text-align:center;">Log in</button>
+      <button class="btn primary full" id="sideSignupBtn" style="width:100%;text-align:center;margin-top:6px;">Sign up</button>
+    </div>
+  </aside>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- Shop view -->
+    <div id="view-shop">
+      <div class="hero">
+        <h1>Script marketplace</h1>
+        <p>Browse scripts from verified sellers. Pay in crypto, PayPal, or Robux.</p>
+      </div>
+      <div class="filters" id="filters"></div>
+      <div class="grid" id="shopGrid"></div>
+    </div>
+
+    <!-- Sell view -->
+    <div id="view-sell" style="display:none"></div>
+
+    <!-- Profile view -->
+    <div id="view-profile" style="display:none">
+      <div class="hero"><h1>Profile</h1><p>Manage your account and settings.</p></div>
+      <div class="profile-wrap" id="profileWrap"></div>
+    </div>
+
+    <!-- Verify view -->
+    <div id="view-verify" style="display:none">
+      <div class="hero"><h1>Get Verified</h1><p>Verified accounts get a blue ✔ next to their name and can sell on Grandfamily.</p></div>
+      <div id="verifyFormWrap"></div>
+    </div>
+
+    <!-- Admin view -->
+    <div id="view-admin" style="display:none">
+      <div class="hero"><h1>Owner dashboard</h1><p>Review verification requests, manage listings, send announcements.</p></div>
+      <div class="section-label">Verification requests</div>
+      <div id="verifyList"></div>
+      <div class="section-label">All listings</div>
+      <div id="adminList"></div>
+      <div class="section-label">Send announcement</div>
+      <div style="max-width:480px;">
+        <textarea id="annInput" rows="2" placeholder="Announcement text…"></textarea>
+        <button class="btn primary" style="margin-top:8px;" id="annSendBtn">Broadcast to site</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Auth overlay -->
+<div class="overlay" id="authOverlay">
+  <div class="modal">
+    <button class="close-btn" id="authClose">×</button>
+    <h2 id="authTitle">Welcome back</h2>
+    <p class="sub" id="authSub">Log in to your Grandfamily account.</p>
+
+    <!-- Email/password login (default) -->
+    <div id="authEmailSection">
+      <div id="loginFields">
+        <label>EMAIL</label><input type="email" id="authEmail" placeholder="you@mail.com">
+        <label>PASSWORD</label><input type="password" id="authPass" placeholder="Password">
+        <div class="err" id="authErr"></div>
+        <button class="btn primary full" id="authSubmit">Log in</button>
+        <p style="text-align:center;margin-top:10px;font-size:12px;color:var(--muted);">
+          No account? <button class="btn ghost" style="font-size:12px;padding:0;border:none;" id="switchToSignup">Sign up</button>
+        </p>
+      </div>
+      <div id="signupFields" style="display:none">
+        <label>USERNAME</label><input type="text" id="authUser" placeholder="yourname">
+        <label>EMAIL</label><input type="email" id="authEmail2" placeholder="you@mail.com">
+        <label>PASSWORD</label><input type="password" id="authPass2" placeholder="Password">
+        <div class="err" id="signupErr"></div>
+        <button class="btn primary full" id="signupSubmit">Create account</button>
+        <p style="text-align:center;margin-top:10px;font-size:12px;color:var(--muted);">
+          Have an account? <button class="btn ghost" style="font-size:12px;padding:0;border:none;" id="switchToLogin">Log in</button>
+        </p>
+      </div>
+    </div>
+
+    <div class="divider">or</div>
+    <button class="discordbtn" id="discordBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 5.3A17.7 17.7 0 0015.7 4l-.3.6a16 16 0 014.6 1.7 16.6 16.6 0 00-13.9 0A16 16 0 016.7 4.6L6.4 4a17.7 17.7 0 00-4.6 1.3C.3 9.2-.2 13 .1 16.7a17.8 17.8 0 005.4 2.7l.9-1.4a11.5 11.5 0 01-1.8-.9l.5-.4a12.7 12.7 0 0010.9 0l.4.4c-.6.3-1.2.6-1.8.9l.9 1.4a17.7 17.7 0 005.4-2.7c.4-4.3-.5-8.1-2.7-11.4zM8.3 14.3c-.9 0-1.6-.8-1.6-1.8s.7-1.8 1.6-1.8c.9 0 1.6.8 1.6 1.8s-.7 1.8-1.6 1.8zm7.4 0c-.9 0-1.6-.8-1.6-1.8s.7-1.8 1.6-1.8c.9 0 1.6.8 1.6 1.8s-.7 1.8-1.6 1.8z"/></svg>
+      Continue with Discord
+    </button>
+  </div>
+</div>
+
+<!-- Checkout overlay -->
+<div class="overlay" id="checkoutOverlay">
+  <div class="modal">
+    <button class="close-btn" id="checkoutClose">×</button>
+    <h2 id="coTitle">Checkout</h2>
+    <p class="sub" id="coSub"></p>
+    <label>PAYMENT METHOD</label>
+    <div class="currencies" id="currencyPicker">
+      <div class="curr" data-curr="crypto"><div class="icon">₿</div>Crypto</div>
+      <div class="curr" data-curr="paypal"><div class="icon">P</div>PayPal</div>
+      <div class="curr" data-curr="robux"><div class="icon">R$</div>Robux</div>
+    </div>
+    <div class="err" id="coErr"></div>
+    <button class="btn primary full" id="coConfirm">Confirm purchase</button>
+  </div>
+</div>
+
+<!-- Logout confirm overlay -->
+<div class="overlay" id="logoutOverlay">
+  <div class="modal" style="max-width:320px;">
+    <h2>Log out</h2>
+    <p class="sub" style="margin-top:6px;">Are you sure you want to log out from your account?</p>
+    <div class="confirm-row">
+      <button class="btn ghost" id="logoutCancel">Cancel</button>
+      <button class="btn danger" id="logoutConfirm">Log out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chat -->
+<button class="chatbtn" id="chatToggle">💬</button>
+<div class="chatpanel" id="chatPanel">
+  <div class="chathead">
+    <button class="back" id="chatBack" style="display:none">← back</button>
+    <span id="chatHeadTitle">Messages</span>
+    <button class="close-btn" style="position:static;" id="chatClose">×</button>
+  </div>
+  <div class="convlist" id="convList"></div>
+  <div class="chatbody" id="chatBody"></div>
+  <div class="chatfoot" id="chatFoot">
+    <input type="text" id="chatInput" placeholder="Message…">
+    <button class="btn primary sm" id="chatSend">Send</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.3.3/dist/email.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+// ── Config ──────────────────────────────────────────────
+const DISCORD_CONFIG = {
+  CLIENT_ID: '1559818708648591460',
+  REDIRECT_URI: window.location.origin + window.location.pathname,
+  SCOPE: 'identify'
+};
+const OWNER_DISCORD_USERNAME = 'devleak';
+const EMAILJS_CONFIG = {
+  PUBLIC_KEY: 'V8ONgHIkwSUA8AnGn',
+  SERVICE_ID: 'service_evvbamq',
+  TEMPLATE_ID: 'template_r09sy2k'
+};
+const OTP_VALID_MS = 15 * 60 * 1000;
+// ⚠️  Set this to your actual bot server URL (e.g. https://yourserver.orihost.com:3000)
+const BOT_API = 'https://REPLACE_WITH_YOUR_BOT_HOST';
+
+// ── State ────────────────────────────────────────────────
+const state = {
+  user: null,
+  users: [],
+  listings: [],
+  nextId: 1,
+  verificationRequests: [],
+  conversations: {},
+  pendingSignup: null,
+  resendCooldownUntil: 0,
+  activeCat: 'All',
+  search: '',
+  pendingPurchase: null,
+  pendingCurrency: null,
+  chatView: 'list',
+  chatWith: null,
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+function toast(msg, dur=2400){
+  const t = $('#toast'); t.textContent=msg; t.style.display='block';
+  clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none', dur);
+}
+function isVerified(u){ return !!(u && (u.isOwner || u.verified)); }
+function badgeHTML(u){
+  if (!u) return '';
+  if (u.isOwner) return '<span class="badge-owner">👑 Owner</span>';
+  if (u.verified) return '<span class="badge-verified">✔ Verified</span>';
+  return '<span style="color:var(--muted);font-size:11px;">Unverified</span>';
+}
+function userAvatarEl(u, size=30){
+  if (u && u.avatarDataUrl) return `<img src="${u.avatarDataUrl}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block;">`;
+  if (u && u.avatarUrl) return `<img src="${u.avatarUrl}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block;">`;
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.44)}px;border:1px solid var(--border-light);">👤</div>`;
+}
+
+// ── Nav ──────────────────────────────────────────────────
+function switchView(name){
+  ['shop','sell','profile','verify','admin'].forEach(v=>{
+    const el = $('#view-'+v); if(el) el.style.display = v===name?'block':'none';
+  });
+  $$('.slink').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+  if(name==='sell') renderSell();
+  if(name==='profile') renderProfile();
+  if(name==='verify') renderVerifyPage();
+  if(name==='admin') renderAdmin();
+}
+$$('.slink').forEach(b=>b.addEventListener('click', ()=>{
+  const v = b.dataset.view;
+  if((v==='sell'||v==='profile'||v==='verify') && !state.user){ openAuth(); return; }
+  if(v==='admin' && !(state.user && state.user.isOwner)) return;
+  switchView(v);
+}));
+
+// ── Auth ─────────────────────────────────────────────────
+function openAuth(){
+  $('#authOverlay').classList.add('show');
+  showLoginForm();
+}
+function showLoginForm(){
+  $('#loginFields').style.display='block';
+  $('#signupFields').style.display='none';
+  $('#authTitle').textContent='Welcome back';
+  $('#authSub').textContent='Log in to your Grandfamily account.';
+  $('#authErr').textContent='';
+  $('#authEmail').value=''; $('#authPass').value='';
+}
+function showSignupForm(){
+  $('#loginFields').style.display='none';
+  $('#signupFields').style.display='block';
+  $('#authTitle').textContent='Create account';
+  $('#authSub').textContent='Join Grandfamily. New accounts start unverified.';
+  $('#signupErr').textContent='';
+  $('#authUser').value=''; $('#authEmail2').value=''; $('#authPass2').value='';
+}
+$('#authClose').addEventListener('click', ()=>$('#authOverlay').classList.remove('show'));
+$('#switchToSignup').addEventListener('click', showSignupForm);
+$('#switchToLogin').addEventListener('click', showLoginForm);
+$('#sideLoginBtn').addEventListener('click', ()=>{openAuth(); showLoginForm();});
+$('#sideSignupBtn').addEventListener('click', ()=>{openAuth(); showSignupForm();});
+
+// Login by email + password
+$('#authSubmit').addEventListener('click', ()=>{
+  const email = $('#authEmail').value.trim().toLowerCase();
+  const pass = $('#authPass').value;
+  const err = $('#authErr'); err.textContent='';
+  if(!email||!pass){err.textContent='Fill in all fields.'; return;}
+  const found = state.users.find(u=>u.email&&u.email.toLowerCase()===email && u.password===pass);
+  if(!found){err.textContent='No account matches those details.'; return;}
+  logIn(found);
+});
+
+// Signup
+$('#signupSubmit').addEventListener('click', ()=>{
+  const uname = $('#authUser').value.trim();
+  const email = $('#authEmail2').value.trim().toLowerCase();
+  const pass = $('#authPass2').value;
+  const err = $('#signupErr'); err.textContent='';
+  if(!uname||!email||!pass){err.textContent='Fill in all fields.'; return;}
+  if(uname.toLowerCase()===OWNER_DISCORD_USERNAME.toLowerCase()){err.textContent='That username is reserved.'; return;}
+  if(pass.length<6){err.textContent='Password must be at least 6 characters.'; return;}
+  if(state.users.find(u=>u.username===uname)){err.textContent='Username already taken.'; return;}
+  if(state.users.find(u=>u.email&&u.email.toLowerCase()===email)){err.textContent='Email already registered.'; return;}
+  const newUser = {username:uname, email, password:pass, isOwner:false, verified:false, method:'email'};
+  state.users.push(newUser);
+  logIn(newUser);
+  toast('Account created!');
+});
+
+// Discord
+$('#discordBtn').addEventListener('click', ()=>{
+  if(!DISCORD_CONFIG.CLIENT_ID||DISCORD_CONFIG.CLIENT_ID==='PASTE'){
+    toast('Discord not configured yet'); return;
+  }
+  const p = new URLSearchParams({client_id:DISCORD_CONFIG.CLIENT_ID, redirect_uri:DISCORD_CONFIG.REDIRECT_URI, response_type:'token', scope:DISCORD_CONFIG.SCOPE});
+  window.location.href = 'https://discord.com/api/oauth2/authorize?'+p.toString();
+});
+function parseHashToken(){
+  const h=window.location.hash;
+  if(!h||!h.includes('access_token=')) return null;
+  return new URLSearchParams(h.slice(1)).get('access_token');
+}
+async function fetchDiscordUser(token){
+  try{
+    const res=await fetch('https://discord.com/api/users/@me',{headers:{Authorization:'Bearer '+token}});
+    if(!res.ok) throw new Error('Discord '+res.status);
+    const d=await res.json();
+    history.replaceState(null,'',window.location.pathname+window.location.search);
+    const isOwner=d.username.toLowerCase()===OWNER_DISCORD_USERNAME.toLowerCase();
+    const avatarUrl=d.avatar?`https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=64`:null;
+    let u=state.users.find(x=>x.discordId===d.id);
+    if(!u){u={username:d.username,discordId:d.id,avatarUrl,isOwner,verified:isOwner,method:'discord'};state.users.push(u);}
+    else{u.isOwner=isOwner;u.verified=u.verified||isOwner;u.avatarUrl=avatarUrl;}
+    logIn(u);
+  }catch(e){toast('Discord sign-in failed: '+e.message);}
+}
+(()=>{ const t=parseHashToken(); if(t) fetchDiscordUser(t); })();
+
+// LogIn / LogOut
+function logIn(user){
+  state.user=user;
+  $('#authOverlay').classList.remove('show');
+  renderSidebar();
+  toast('Signed in as '+user.username);
+}
+function doLogout(){
+  state.user=null;
+  $('#logoutOverlay').classList.remove('show');
+  renderSidebar();
+  switchView('shop');
+}
+$('#logoutCancel').addEventListener('click', ()=>$('#logoutOverlay').classList.remove('show'));
+$('#logoutConfirm').addEventListener('click', doLogout);
+
+// ── Sidebar user chip ─────────────────────────────────────
+function renderSidebar(){
+  const bot = $('#sidebarBottom');
+  if(!state.user){
+    bot.innerHTML=`
+      <button class="btn ghost" style="width:100%;text-align:center;" id="sideLoginBtn">Log in</button>
+      <button class="btn primary" style="width:100%;text-align:center;margin-top:6px;" id="sideSignupBtn">Sign up</button>`;
+    bot.querySelector('#sideLoginBtn').addEventListener('click',()=>{openAuth();showLoginForm();});
+    bot.querySelector('#sideSignupBtn').addEventListener('click',()=>{openAuth();showSignupForm();});
+    $('#verifyNavBtn').style.display='none';
+    $('#adminNavBtn').style.display='none';
+    return;
+  }
+  const u=state.user;
+  bot.innerHTML=`
+    <button class="user-chip" id="sideProfileBtn">
+      <div class="user-chip-avatar" id="sideAvatar">${userAvatarEl(u,30)}</div>
+      <div class="user-chip-info">
+        <div class="user-chip-name">${u.username}</div>
+        <div class="user-chip-sub">${u.isOwner?'👑 Owner':u.verified?'✔ Verified':'Unverified'}</div>
+      </div>
+    </button>
+    <button class="btn danger" style="width:100%;margin-top:6px;text-align:center;" id="sideLogoutBtn">Log out</button>`;
+  bot.querySelector('#sideProfileBtn').addEventListener('click',()=>switchView('profile'));
+  bot.querySelector('#sideLogoutBtn').addEventListener('click',()=>$('#logoutOverlay').classList.add('show'));
+  $('#verifyNavBtn').style.display = !isVerified(u) ? 'flex':'none';
+  $('#adminNavBtn').style.display = u.isOwner ? 'flex':'none';
+}
+
+// ── Profile ───────────────────────────────────────────────
+function renderProfile(){
+  const u=state.user; if(!u){$('#profileWrap').innerHTML=''; return;}
+  const wrap=$('#profileWrap');
+  wrap.innerHTML=`
+    <div class="pfp-upload-area" id="pfpArea" title="Click to upload photo">
+      <div class="pfp-preview" id="pfpPreview">${userAvatarEl(u,80)}</div>
+      <div class="pfp-upload-label"><b>Click to upload</b> your profile photo<br><span style="font-size:10.5px;">JPG, PNG, GIF — max 4 MB</span></div>
+      <input type="file" id="pfpInput" accept="image/*">
+    </div>
+    <div class="profile-badge-row">${badgeHTML(u)}</div>
+    <label>DISPLAY NAME</label>
+    <input type="text" id="profName" value="${u.username}" placeholder="Username">
+    <div class="err" id="profErr"></div>
+    <button class="btn primary" style="margin-top:10px;" id="profSave">Save changes</button>`;
+
+  // PFP upload
+  const pfpArea=$('#pfpArea'), pfpInput=$('#pfpInput'), pfpPreview=$('#pfpPreview');
+  pfpArea.addEventListener('click',()=>pfpInput.click());
+  pfpInput.addEventListener('change',()=>{
+    const file=pfpInput.files[0]; if(!file) return;
+    if(file.size>4*1024*1024){toast('Image too large — max 4 MB'); return;}
+    const reader=new FileReader();
+    reader.onload=e=>{
+      u.avatarDataUrl=e.target.result;
+      pfpPreview.innerHTML=userAvatarEl(u,80);
+      renderSidebar(); toast('Photo updated');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('#profSave').addEventListener('click',()=>{
+    const newName=$('#profName').value.trim();
+    const err=$('#profErr'); err.textContent='';
+    if(!newName){err.textContent='Name cannot be empty.'; return;}
+    if(newName!==u.username&&state.users.find(x=>x.username===newName&&x!==u)){
+      err.textContent='Username already taken.'; return;
+    }
+    u.username=newName;
+    renderSidebar();
+    toast('Profile saved');
+    renderProfile();
+  });
+}
+
+// ── Verify page ───────────────────────────────────────────
+function renderVerifyPage(){
+  const wrap=$('#verifyFormWrap'); if(!state.user){wrap.innerHTML=''; return;}
+  const u=state.user;
+  if(isVerified(u)){
+    wrap.innerHTML=`<div style="background:var(--good-dim);border:1px solid var(--good);border-radius:6px;padding:14px 16px;font-size:13px;">
+      ✅ Your account is already verified. You can sell from the Sell tab.</div>`;
+    return;
+  }
+  if(u._verifyPending){
+    wrap.innerHTML=`<div style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:6px;padding:14px 16px;font-size:13px;">
+      ⏳ Your verification request was submitted. The owner will review it within 3 days. If no response comes, you can resubmit.</div>`;
+    return;
+  }
+  wrap.innerHTML=`
+    <div style="max-width:440px;">
+      <label>YOUR REAL NAME</label>
+      <input type="text" id="vfName" placeholder="Full name">
+      <label>WHY DO YOU WANT VERIFICATION?</label>
+      <textarea id="vfReason" rows="3" placeholder="Tell us about yourself and why you should be verified…"></textarea>
+      <label>YOUR AGE</label>
+      <input type="text" id="vfAge" placeholder="e.g. 18" style="max-width:110px;">
+      <label>SOCIAL MEDIA (optional)</label>
+      <input type="text" id="vfSocial" placeholder="Twitter, TikTok, Instagram, YouTube…">
+      <div class="err" id="vfErr"></div>
+      <button class="btn blue" style="margin-top:12px;" id="vfSubmit">Submit request</button>
+    </div>`;
+  $('#vfSubmit').addEventListener('click', async ()=>{
+    const name=$('#vfName').value.trim();
+    const reason=$('#vfReason').value.trim();
+    const age=$('#vfAge').value.trim();
+    const social=$('#vfSocial').value.trim();
+    const err=$('#vfErr'); err.textContent='';
+    if(!name||!reason||!age){err.textContent='Please fill in your name, reason, and age.'; return;}
+    const btn=$('#vfSubmit'); btn.disabled=true; btn.textContent='Submitting…';
+    const payload={username:u.username, realName:name, reason, age, social:social||'N/A', submittedAt:Date.now()};
+    state.verificationRequests.push(u.username);
+    u._verifyPending=true; u._verifyPayload=payload;
+    try{ await fetch(BOT_API+'/verification-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'}); }catch(_){}
+    toast('Request submitted!');
+    renderVerifyPage();
+  });
+}
+
+// ── Shop ──────────────────────────────────────────────────
+function categories(){ return ['All',...new Set(state.listings.map(l=>l.cat))]; }
+function renderFilters(){
+  $('#filters').innerHTML='';
+  categories().forEach(c=>{
+    const ch=document.createElement('div');
+    ch.className='chip'+(state.activeCat===c?' on':'');
+    ch.textContent=c;
+    ch.addEventListener('click',()=>{state.activeCat=c;renderFilters();renderShop();});
+    $('#filters').appendChild(ch);
+  });
+}
+function renderShop(){
+  const grid=$('#shopGrid'); grid.innerHTML='';
+  const items=state.listings.filter(l=>
+    (state.activeCat==='All'||l.cat===state.activeCat)&&
+    (l.title.toLowerCase().includes(state.search.toLowerCase())||l.desc.toLowerCase().includes(state.search.toLowerCase()))
+  );
+  if(!items.length){grid.innerHTML='<div class="empty">No scripts listed yet.</div>'; return;}
+  items.forEach(l=>{
+    const su=state.users.find(u=>u.username===l.seller);
+    const sb=su&&su.isOwner?'👑':su&&su.verified?'<span style="color:var(--blue);">✔</span>':'';
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML=`
+      <div class="tag">${l.cat}</div>
+      <h3>${l.title}</h3>
+      <div class="desc">${l.desc}</div>
+      <div class="meta"><span class="seller-name">${l.seller} ${sb}</span><span>verified</span></div>
+      <div class="row"><div class="price">${l.price===0?'Free':'$'+l.price}</div></div>
+      <div class="row">
+        <button class="btn primary buy">Buy now</button>
+        <button class="btn chat-seller">Message</button>
+      </div>`;
+    card.querySelector('.buy').addEventListener('click',()=>openCheckout(l));
+    card.querySelector('.chat-seller').addEventListener('click',()=>openChatWith(l.seller));
+    grid.appendChild(card);
+  });
+}
+$('#searchBox').addEventListener('input',e=>{state.search=e.target.value;renderShop();});
+
+// ── Checkout ──────────────────────────────────────────────
+function openCheckout(l){
+  if(!state.user){openAuth(); return;}
+  state.pendingPurchase=l; state.pendingCurrency=null;
+  $('#coTitle').textContent='Buy '+l.title;
+  $('#coSub').textContent=(l.price===0?'Free':'$'+l.price)+' — pick how you want to pay.';
+  $('#coErr').textContent='';
+  $$('.curr').forEach(c=>c.classList.remove('on'));
+  $('#checkoutOverlay').classList.add('show');
+}
+$('#checkoutClose').addEventListener('click',()=>$('#checkoutOverlay').classList.remove('show'));
+$$('.curr').forEach(c=>c.addEventListener('click',()=>{
+  $$('.curr').forEach(x=>x.classList.remove('on')); c.classList.add('on');
+  state.pendingCurrency=c.dataset.curr;
+}));
+$('#coConfirm').addEventListener('click',()=>{
+  if(!state.pendingCurrency){$('#coErr').textContent='Select a payment method first.'; return;}
+  $('#checkoutOverlay').classList.remove('show');
+  toast('Purchased '+state.pendingPurchase.title+' via '+state.pendingCurrency);
+});
+
+// ── Sell ──────────────────────────────────────────────────
+function renderSell(){
+  const el=$('#view-sell'); if(!state.user){el.innerHTML=''; return;}
+  if(!isVerified(state.user)){
+    el.innerHTML=`
+      <div class="hero"><h1>Get verified to sell</h1><p>Only verified accounts can list scripts.</p></div>
+      <button class="btn blue" id="goVerify">Apply for verification →</button>`;
+    $('#goVerify').addEventListener('click',()=>switchView('verify'));
+    return;
+  }
+  el.innerHTML=`
+    <div class="hero"><h1>List a script</h1><p>You're verified — listings go live immediately.</p></div>
+    <div style="max-width:460px;">
+      <label>TITLE</label><input type="text" id="sTitle" placeholder="e.g. Auto-Farm Pro v3">
+      <label>CATEGORY</label>
+      <select id="sCat"><option>Automation</option><option>Game Mod</option><option>Utility</option><option>Discord Bot</option><option>Web Tool</option></select>
+      <label>DESCRIPTION</label><textarea id="sDesc" rows="4" placeholder="What does it do?"></textarea>
+      <label>PRICE (USD)</label><input type="text" id="sPrice" placeholder="e.g. 12 (enter 0 for free)">
+      <div class="err" id="sellErr"></div>
+      <button class="btn primary" style="margin-top:10px;" id="sellSubmit">Publish listing</button>
+    </div>`;
+  $('#sellSubmit').addEventListener('click',()=>{
+    const title=$('#sTitle').value.trim();
+    const cat=$('#sCat').value;
+    const desc=$('#sDesc').value.trim();
+    const price=parseFloat($('#sPrice').value);
+    const err=$('#sellErr'); err.textContent='';
+    if(!title||!desc||isNaN(price)||price<0){err.textContent='Fill in every field with a valid price.'; return;}
+    state.listings.unshift({id:state.nextId++,title,cat,price,desc,seller:state.user.username});
+    toast('Listing published');
+    renderFilters(); renderShop();
+    switchView('shop');
+  });
+}
+
+// ── Admin ─────────────────────────────────────────────────
+function renderAdmin(){
+  // Verify requests
+  const vlist=$('#verifyList');
+  if(!state.verificationRequests.length){
+    vlist.innerHTML='<div class="empty" style="padding:16px 0;">No pending requests.</div>';
+  } else {
+    vlist.innerHTML='';
+    state.verificationRequests.forEach(uname=>{
+      const u=state.users.find(x=>x.username===uname);
+      const p=u&&u._verifyPayload;
+      const row=document.createElement('div'); row.className='admin-row';
+      row.innerHTML=`
+        <div class="info">
+          <b>${uname}</b>
+          ${p?`<span>Name: ${p.realName} · Age: ${p.age}</span><span>Reason: ${p.reason}</span><span>Social: ${p.social}</span>`:'<span>Requested verification</span>'}
+        </div>`;
+      const bg=document.createElement('div'); bg.className='btn-group';
+      const ab=document.createElement('button'); ab.className='btn good sm'; ab.textContent='Accept';
+      const db=document.createElement('button'); db.className='btn danger sm'; db.textContent='Decline';
+      ab.addEventListener('click',()=>{
+        const reason=prompt('Acceptance reason:'); if(reason===null) return;
+        if(u){u.verified=true;u._verifyPending=false;}
+        state.verificationRequests=state.verificationRequests.filter(x=>x!==uname);
+        toast(uname+' verified ✔'); renderAdmin();
+        if(state.user&&state.user.username===uname){renderSidebar();renderSell();}
+      });
+      db.addEventListener('click',()=>{
+        const reason=prompt('Decline reason (required):'); if(!reason){toast('Reason required.'); return;}
+        if(u){u._verifyPending=false;delete u._verifyPayload;}
+        state.verificationRequests=state.verificationRequests.filter(x=>x!==uname);
+        toast(uname+' declined'); renderAdmin();
+      });
+      bg.append(ab,db); row.appendChild(bg); vlist.appendChild(row);
+    });
+  }
+
+  // Listings
+  const al=$('#adminList'); al.innerHTML='';
+  if(!state.listings.length){al.innerHTML='<div class="empty" style="padding:16px 0;">No listings.</div>';}
+  else{
+    state.listings.forEach(l=>{
+      const row=document.createElement('div'); row.className='admin-row';
+      row.innerHTML=`<div class="info"><b>${l.title}</b><span>${l.cat} · ${l.price===0?'Free':'$'+l.price} · by ${l.seller}</span></div>`;
+      const db=document.createElement('button'); db.className='btn danger sm'; db.textContent='Remove';
+      db.addEventListener('click',()=>{
+        state.listings=state.listings.filter(x=>x.id!==l.id);
+        renderAdmin();renderFilters();renderShop();toast('Listing removed');
+      });
+      row.appendChild(db); al.appendChild(row);
+    });
+  }
+
+  // Announcement
+  const annBtn=$('#annSendBtn');
+  annBtn.onclick=async()=>{
+    const text=$('#annInput').value.trim();
+    if(!text){toast('Type something first.'); return;}
+    $('#annBar').classList.add('show');
+    $('#annText').textContent=text;
+    $('#annInput').value='';
+    try{await fetch(BOT_API+'/announcement',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text}),mode:'no-cors'});}catch(_){}
+    toast('Announcement broadcast!');
+  };
+}
+
+// ── Announcement bar close ────────────────────────────────
+$('#annClose').addEventListener('click',()=>$('#annBar').classList.remove('show'));
+
+// ── Chat ──────────────────────────────────────────────────
+function ensureConv(w){
+  if(!state.conversations[w]) state.conversations[w]=[{from:'them',text:"Hey — thanks for reaching out!"}];
+  return state.conversations[w];
+}
+function openChatWith(w){
+  if(!state.user){openAuth(); return;}
+  if(w===state.user.username){toast("That's you."); return;}
+  ensureConv(w); state.chatWith=w; state.chatView='thread';
+  $('#chatPanel').classList.add('show'); renderChatThread();
+}
+function renderConvList(){
+  const names=Object.keys(state.conversations), body=$('#convList');
+  if(!names.length){body.innerHTML='<div class="empty-state">No conversations yet.</div>'; return;}
+  body.innerHTML='';
+  names.forEach(n=>{
+    const last=state.conversations[n].slice(-1)[0];
+    const row=document.createElement('div'); row.className='convitem';
+    row.innerHTML=`<div><div style="font-weight:600;font-size:12.5px;">${n}</div><div style="color:var(--muted);font-size:11px;">${(last?last.text:'').slice(0,32)}</div></div>`;
+    row.addEventListener('click',()=>{state.chatWith=n;state.chatView='thread';renderChatThread();});
+    body.appendChild(row);
+  });
+}
+function renderChatThread(){
+  $('#chatHeadTitle').textContent=state.chatWith;
+  $('#chatBack').style.display='inline-block';
+  $('#convList').style.display='none';
+  const body=$('#chatBody'); body.style.display='flex'; body.innerHTML='';
+  ensureConv(state.chatWith).forEach(m=>{
+    const d=document.createElement('div'); d.className='msg '+(m.from==='me'?'me':'them');
+    d.textContent=m.text; body.appendChild(d);
+  });
+  body.scrollTop=body.scrollHeight;
+  $('#chatFoot').style.display='flex';
+}
+function renderChatList(){
+  $('#chatHeadTitle').textContent='Messages';
+  $('#chatBack').style.display='none';
+  $('#convList').style.display='block';
+  $('#chatBody').style.display='none';
+  $('#chatFoot').style.display='none';
+  renderConvList();
+}
+$('#chatToggle').addEventListener('click',()=>{
+  $('#chatPanel').classList.toggle('show');
+  if($('#chatPanel').classList.contains('show')){
+    if(state.chatView==='thread'&&state.chatWith) renderChatThread(); else renderChatList();
+  }
+});
+$('#chatClose').addEventListener('click',()=>$('#chatPanel').classList.remove('show'));
+$('#chatBack').addEventListener('click',()=>{state.chatView='list';renderChatList();});
+function sendChat(){
+  if(!state.chatWith) return;
+  const inp=$('#chatInput'), val=inp.value.trim(); if(!val) return;
+  const conv=ensureConv(state.chatWith);
+  conv.push({from:'me',text:val}); inp.value=''; renderChatThread();
+  setTimeout(()=>{ conv.push({from:'them',text:"Got it, I'll get back to you shortly."});
+    if(state.chatView==='thread'&&state.chatWith) renderChatThread(); }, 800);
+}
+$('#chatSend').addEventListener('click',sendChat);
+$('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter') sendChat();});
+
+// ── Init ──────────────────────────────────────────────────
+renderFilters(); renderShop(); renderSidebar();
+})();
+</script>
+</body>
+</html>
