@@ -37,6 +37,19 @@ body{
   flex-shrink:0; z-index:20; position:sticky; top:0;
   backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
 }
+.hamburger{
+  width:34px;height:34px;border-radius:7px;background:transparent;border:1px solid transparent;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  transition:background .12s,border-color .12s;
+}
+.hamburger:hover{background:var(--surface2);border-color:var(--border-light);}
+.hamburger .bar{display:block;width:16px;height:1.6px;background:var(--text);border-radius:2px;position:relative;transition:transform .22s cubic-bezier(.4,0,.2,1),opacity .18s;}
+.hamburger .bar::before,.hamburger .bar::after{content:'';position:absolute;left:0;width:16px;height:1.6px;background:var(--text);border-radius:2px;transition:transform .22s cubic-bezier(.4,0,.2,1),top .22s cubic-bezier(.4,0,.2,1);}
+.hamburger .bar::before{top:-5px;}
+.hamburger .bar::after{top:5px;}
+.hamburger.open .bar{background:transparent;}
+.hamburger.open .bar::before{top:0;transform:rotate(45deg);}
+.hamburger.open .bar::after{top:0;transform:rotate(-45deg);}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;letter-spacing:-.4px;color:var(--text);}
 .brand-logo{
   width:32px;height:32px;border-radius:8px;
@@ -47,7 +60,7 @@ body{
 .brand-logo svg{width:18px;height:18px;}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
 .search-wrap{position:relative;display:flex;align-items:center;}
-.search-wrap .ic{position:absolute;left:10px;pointer-events:none;opacity:.45;z-index:1;}
+.search-wrap .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.45;z-index:1;}
 .search-bar{
   background:var(--surface); border:1px solid var(--border-light); border-radius:7px;
   padding:7px 12px 7px 32px; color:var(--text); font-size:12.5px; width:220px;
@@ -65,8 +78,13 @@ body{
 .sidebar{
   width:224px; flex-shrink:0; background:var(--surface);
   border-right:1px solid var(--border); display:flex; flex-direction:column;
-  padding:14px 8px; gap:2px; overflow-y:auto;
+  padding:14px 8px; gap:2px; overflow-y:auto; overflow-x:hidden;
+  transition:width .24s cubic-bezier(.4,0,.2,1),padding .24s cubic-bezier(.4,0,.2,1),border-color .24s;
+  white-space:nowrap;
 }
+.sidebar.collapsed{width:0;padding-left:0;padding-right:0;border-color:transparent;}
+.sidebar.collapsed .slink,.sidebar.collapsed .sidebar-section,.sidebar.collapsed .sidebar-bottom{opacity:0;pointer-events:none;transition:opacity .1s;}
+.sidebar:not(.collapsed) .slink,.sidebar:not(.collapsed) .sidebar-section,.sidebar:not(.collapsed) .sidebar-bottom{opacity:1;transition:opacity .2s ease .1s;}
 .sidebar-section{font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:1px;padding:12px 10px 5px;text-transform:uppercase;}
 .sidebar-section:first-child{padding-top:2px;}
 .slink{
@@ -255,6 +273,7 @@ textarea{resize:vertical;min-height:80px;}
 </div>
 
 <div class="topbar">
+  <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span class="bar"></span></button>
   <div class="brand">
     <div class="brand-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 8v8l10 6 10-6V8L12 2z"/><path d="M12 2v20M2 8l10 6 10-6"/></svg></div>
     Grandfamily
@@ -375,11 +394,10 @@ textarea{resize:vertical;min-height:80px;}
     <h2 id="coTitle">Checkout</h2>
     <p class="sub" id="coSub"></p>
     <label>Payment Method</label>
-    <div class="currencies">
-      <div class="curr" data-curr="crypto"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.3"/><path d="M6.3 5.3h2.4c.9 0 1.6.6 1.6 1.4s-.7 1.3-1.6 1.3H6.3m0 0h2.6c1 0 1.7.6 1.7 1.5s-.7 1.5-1.7 1.5H6.3M7.3 4.3v1M7.3 10.7v1" stroke-linecap="round"/></svg>PayPal<br>Crypto</div>
-      <div class="curr" data-curr="paypal"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 3h5.5c2 0 3.3 1.1 3 3-.3 2.2-2 3.3-4 3.3H6.5L5.8 13H3.3L4 3z"/><path d="M6.5 6h3.3c1.3 0 2.2.7 2 2.2" stroke-linecap="round"/></svg>PayPal</div>
-      <div class="curr" data-curr="robux"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 3h4.5L10 5.5v4.8L5.5 13 3 10.5V3z"/></svg>Robux</div>
-    </div>
+    <div class="currencies" id="coCurrencies"></div>
+    <label id="coAcctLabel" style="display:none;">Your Payment Account</label>
+    <input type="text" id="coAcctInput" placeholder="" style="display:none;">
+    <p class="hint" id="coAcctHint" style="font-size:10.5px;color:var(--muted);margin-top:4px;display:none;">The seller will send purchase confirmation to this account — enter it exactly.</p>
     <div class="err" id="coErr"></div>
     <button class="btn primary full" id="coConfirm">Confirm purchase</button>
   </div>
@@ -406,6 +424,8 @@ textarea{resize:vertical;min-height:80px;}
   <div class="convlist" id="convList"></div>
   <div class="chatbody" id="chatBody"></div>
   <div class="chatfoot" id="chatFoot">
+    <button class="btn sm" id="chatAttach" title="Send proof of purchase"><svg class="ic-sm" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="5.5" cy="6.5" r="1"/><path d="M14 10l-3.5-3-3 3L6 8.5 2 12" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <input type="file" id="chatImgInput" accept="image/*" style="display:none;">
     <input type="text" id="chatInput" placeholder="Message…">
     <button class="btn primary sm" id="chatSend">Send</button>
   </div>
@@ -413,6 +433,7 @@ textarea{resize:vertical;min-height:80px;}
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
 (function(){
 'use strict';
@@ -443,6 +464,7 @@ function saveState(){
       nextId: state.nextId,
       verificationRequests: state.verificationRequests,
       conversations: state.conversations,
+      purchases: state.purchases || {},
       currentUsername: state.user ? state.user.username : null
     }));
   }catch(e){}
@@ -456,6 +478,7 @@ const state = {
   nextId: saved ? saved.nextId : 1,
   verificationRequests: saved ? saved.verificationRequests : [],
   conversations: saved ? saved.conversations : {},
+  purchases: saved ? (saved.purchases || {}) : {},
   activeCat:'All', search:'',
   pendingPurchase:null, pendingCurrency:null,
   chatView:'list', chatWith:null,
@@ -495,6 +518,26 @@ function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 /* ── Guest banner ── */
 function renderGuestBanner(){
   const box=$('#guestBanner');
+  const filtersEl=$('#filters'), gridEl=$('#shopGrid'), statsEl=$('.stats-row');
+  const chatBtn=$('#chatToggle'), chatPanel=$('#chatPanel');
+  if(!state.user){
+    filtersEl.style.display='none';
+    gridEl.style.display='none';
+    if(statsEl) statsEl.style.display='none';
+    chatBtn.style.display='none';
+    chatPanel.classList.remove('show');
+    sidebarEl.style.display='none';
+    hamburgerBtn.style.display='none';
+  } else {
+    filtersEl.style.display='flex';
+    gridEl.style.display='grid';
+    if(statsEl) statsEl.style.display='flex';
+    chatBtn.style.display='flex';
+    sidebarEl.style.display='flex';
+    hamburgerBtn.style.display='flex';
+    sidebarOpen=true;
+    applySidebarState();
+  }
   if(state.user){ box.innerHTML=''; return; }
   box.innerHTML=`
     <div class="guest-hero">
@@ -770,9 +813,11 @@ function renderShop(){
     grid.innerHTML=`<div class="empty">${state.listings.length?'No scripts match your search.':'No scripts listed yet.'}</div>`;
     updateStats(); return;
   }
+  const buyerName = state.user ? state.user.username : null;
   items.forEach((l,i)=>{
     const su=state.users.find(u=>u.username===l.seller);
     const sb=su&&su.isOwner?'<span style="color:var(--accent);font-size:11px;">Owner</span>':su&&su.verified?'<span style="color:var(--blue);font-size:11px;">Verified</span>':'';
+    const bought=hasPurchased(buyerName,l);
     const card=document.createElement('div'); card.className='card';
     card.style.animationDelay=(i*30)+'ms';
     card.innerHTML=`
@@ -783,10 +828,13 @@ function renderShop(){
       <div class="row"><div class="price${l.price===0?' free':''}">${l.price===0?'Free':'$'+l.price}</div></div>
       <div class="row">
         <button class="btn primary buy">Buy now</button>
-        <button class="btn chat-seller">Message</button>
+        <button class="btn chat-seller" ${bought?'':'disabled title="Buy this listing first to message the seller"'}>Message</button>
       </div>`;
     card.querySelector('.buy').addEventListener('click',()=>openCheckout(l));
-    card.querySelector('.chat-seller').addEventListener('click',()=>openChatWith(l.seller));
+    const msgBtn=card.querySelector('.chat-seller');
+    if(bought){
+      msgBtn.addEventListener('click',()=>openChatWith(l.seller,l));
+    }
     grid.appendChild(card);
   });
   updateStats();
@@ -803,24 +851,59 @@ searchClear.addEventListener('click',()=>{
 });
 
 /* ── Checkout ── */
+const CURR_META={
+  crypto:{label:'Crypto wallet address',icon:'<svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.3"/><path d="M6.3 5.3h2.4c.9 0 1.6.6 1.6 1.4s-.7 1.3-1.6 1.3H6.3m0 0h2.6c1 0 1.7.6 1.7 1.5s-.7 1.5-1.7 1.5H6.3M7.3 4.3v1M7.3 10.7v1" stroke-linecap="round"/></svg>',name:'Crypto'},
+  paypal:{label:'PayPal email',icon:'<svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 3h5.5c2 0 3.3 1.1 3 3-.3 2.2-2 3.3-4 3.3H6.5L5.8 13H3.3L4 3z"/><path d="M6.5 6h3.3c1.3 0 2.2.7 2 2.2" stroke-linecap="round"/></svg>',name:'PayPal'},
+  robux:{label:'Roblox username',icon:'<svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 3h4.5L10 5.5v4.8L5.5 13 3 10.5V3z"/></svg>',name:'Robux'}
+};
+function purchaseKey(buyer,l){ return buyer+'::'+l.id; }
+function hasPurchased(buyer,l){ if(!buyer) return false; return !!(state.purchases && state.purchases[purchaseKey(buyer,l)]); }
+if(!state.purchases) state.purchases={};
+
 function openCheckout(l){
   if(!state.user){openAuth(); return;}
   state.pendingPurchase=l; state.pendingCurrency=null;
   $('#coTitle').textContent='Buy '+l.title;
   $('#coSub').textContent=(l.price===0?'Free':'$'+l.price)+' — pick how you want to pay.';
   $('#coErr').textContent='';
-  $$('.curr').forEach(c=>c.classList.remove('on'));
+  $('#coAcctInput').value='';
+  $('#coAcctLabel').style.display='none';
+  $('#coAcctInput').style.display='none';
+  $('#coAcctHint').style.display='none';
+  const methods=l.methods&&l.methods.length?l.methods:['crypto','paypal','robux'];
+  const box=$('#coCurrencies'); box.innerHTML='';
+  methods.forEach(m=>{
+    const meta=CURR_META[m]; if(!meta) return;
+    const d=document.createElement('div'); d.className='curr'; d.dataset.curr=m;
+    d.innerHTML=meta.icon+meta.name;
+    d.addEventListener('click',()=>{
+      $$('#coCurrencies .curr').forEach(x=>x.classList.remove('on'));
+      d.classList.add('on'); state.pendingCurrency=m;
+      $('#coAcctLabel').textContent='Your '+meta.label;
+      $('#coAcctLabel').style.display='block';
+      $('#coAcctInput').placeholder=meta.label;
+      $('#coAcctInput').style.display='block';
+      $('#coAcctHint').style.display='block';
+    });
+    box.appendChild(d);
+  });
   $('#checkoutOverlay').classList.add('show');
 }
 $('#checkoutClose').addEventListener('click',()=>$('#checkoutOverlay').classList.remove('show'));
-$$('.curr').forEach(c=>c.addEventListener('click',()=>{
-  $$('.curr').forEach(x=>x.classList.remove('on')); c.classList.add('on');
-  state.pendingCurrency=c.dataset.curr;
-}));
 $('#coConfirm').addEventListener('click',()=>{
-  if(!state.pendingCurrency){$('#coErr').textContent='Select a payment method first.'; return;}
+  const err=$('#coErr'); err.textContent='';
+  if(!state.pendingCurrency){err.textContent='Select a payment method first.'; return;}
+  const acct=$('#coAcctInput').value.trim();
+  if(!acct){err.textContent='Enter your '+CURR_META[state.pendingCurrency].label+' so the seller can confirm payment.'; return;}
+  const l=state.pendingPurchase, buyer=state.user.username;
+  state.purchases[purchaseKey(buyer,l)]={
+    listingId:l.id, listingTitle:l.title, seller:l.seller, buyer,
+    method:state.pendingCurrency, account:acct, purchasedAt:Date.now(), proofSent:false
+  };
+  saveState();
   $('#checkoutOverlay').classList.remove('show');
-  toast('Purchased '+state.pendingPurchase.title+' via '+state.pendingCurrency+'!');
+  toast('Purchased '+l.title+' — you can now message '+l.seller+' to confirm.');
+  renderShop();
 });
 
 /* ── Sell ── */
@@ -845,10 +928,59 @@ function renderSell(){
       <div class="char-count" id="descCount">0 / 500</div>
       <label>Price (USD)</label>
       <input type="text" id="sPrice" placeholder="e.g. 12  —  enter 0 for free" style="max-width:200px;">
+      <label>Accepted Payment Methods <span style="color:var(--muted);font-weight:400;">(select at least one)</span></label>
+      <div class="currencies" id="sellCurrencies">
+        <div class="curr" data-curr="crypto"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.3"/><path d="M6.3 5.3h2.4c.9 0 1.6.6 1.6 1.4s-.7 1.3-1.6 1.3H6.3m0 0h2.6c1 0 1.7.6 1.7 1.5s-.7 1.5-1.7 1.5H6.3M7.3 4.3v1M7.3 10.7v1" stroke-linecap="round"/></svg>Crypto</div>
+        <div class="curr" data-curr="paypal"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 3h5.5c2 0 3.3 1.1 3 3-.3 2.2-2 3.3-4 3.3H6.5L5.8 13H3.3L4 3z"/><path d="M6.5 6h3.3c1.3 0 2.2.7 2 2.2" stroke-linecap="round"/></svg>PayPal</div>
+        <div class="curr" data-curr="robux"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 3h4.5L10 5.5v4.8L5.5 13 3 10.5V3z"/></svg>Robux</div>
+      </div>
+      <label>Screenshots <span style="color:var(--muted);font-weight:400;">(optional — skip if you don't want any)</span></label>
+      <div class="pfp-upload-area" id="sellPhotoArea" style="padding:16px;">
+        <div class="pfp-upload-label"><b>Click to add photos</b><br><span style="font-size:10.5px;">Optional — up to 3 images, 4 MB each</span></div>
+        <input type="file" id="sellPhotoInput" accept="image/*" multiple>
+      </div>
+      <div id="sellPhotoPreview" style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;"></div>
       <div class="err" id="sellErr"></div>
       <button class="btn primary" style="margin-top:14px;" id="sellSubmit">Publish listing</button>
     </div>`;
   $('#sDesc').addEventListener('input',()=>{ $('#descCount').textContent=$('#sDesc').value.length+' / 500'; });
+
+  const sellMethods=new Set();
+  $$('#sellCurrencies .curr').forEach(c=>c.addEventListener('click',()=>{
+    c.classList.toggle('on');
+    const m=c.dataset.curr;
+    if(sellMethods.has(m)) sellMethods.delete(m); else sellMethods.add(m);
+  }));
+
+  const sellPhotos=[];
+  const photoArea=$('#sellPhotoArea'), photoInput=$('#sellPhotoInput'), photoPreview=$('#sellPhotoPreview');
+  photoArea.addEventListener('click',()=>photoInput.click());
+  photoInput.addEventListener('change',()=>{
+    const files=Array.from(photoInput.files).slice(0,3-sellPhotos.length);
+    if(!files.length && photoInput.files.length>0){ toast('Max 3 photos.'); return; }
+    files.forEach(file=>{
+      if(file.size>4*1024*1024){toast(file.name+' is too large — max 4 MB'); return;}
+      const reader=new FileReader();
+      reader.onload=e=>{
+        sellPhotos.push(e.target.result);
+        renderSellPhotoPreview();
+      };
+      reader.readAsDataURL(file);
+    });
+    photoInput.value='';
+  });
+  function renderSellPhotoPreview(){
+    photoPreview.innerHTML='';
+    sellPhotos.forEach((src,i)=>{
+      const wrap=document.createElement('div');
+      wrap.style.cssText='position:relative;width:56px;height:56px;';
+      wrap.innerHTML=`<img src="${src}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--border-light);">
+        <button type="button" style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1;">×</button>`;
+      wrap.querySelector('button').addEventListener('click',()=>{ sellPhotos.splice(i,1); renderSellPhotoPreview(); });
+      photoPreview.appendChild(wrap);
+    });
+  }
+
   $('#sellSubmit').addEventListener('click',()=>{
     const title=$('#sTitle').value.trim();
     const cat=$('#sCat').value;
@@ -859,7 +991,13 @@ function renderSell(){
     if(!title){err.textContent='Title is required.'; return;}
     if(!desc){err.textContent='Description is required.'; return;}
     if(priceRaw===''||isNaN(price)||price<0){err.textContent='Enter a valid price (0 for free).'; return;}
-    state.listings.unshift({id:state.nextId++,title,cat,price,desc,seller:state.user.username});
+    if(!sellMethods.size){err.textContent='Select at least one accepted payment method.'; return;}
+    state.listings.unshift({
+      id:state.nextId++, title, cat, price, desc,
+      seller:state.user.username,
+      methods:Array.from(sellMethods),
+      photos:sellPhotos.slice()
+    });
     saveState();
     toast('Listing published!');
     renderFilters(); renderShop();
@@ -928,40 +1066,111 @@ function renderAdmin(){
 
 $('#annClose').addEventListener('click',()=>$('#annBar').classList.remove('show'));
 
-/* ── Chat ── */
-function ensureConv(w){
-  if(!state.conversations[w]) state.conversations[w]=[{from:'them',text:'Hey — thanks for reaching out!'}];
-  return state.conversations[w];
+/* ── Chat — purchase-gated, proof-first, real-time via Socket.io ── */
+// Room id is deterministic: buyer + seller + listing, so both sides land in the same thread.
+function roomId(buyer,seller,listingId){ return [buyer,seller,listingId].join('::'); }
+
+let socket=null;
+function connectSocket(){
+  if(typeof io==='undefined') return; // socket.io client script didn't load
+  if(socket) return;
+  socket=io(BOT_API,{transports:['websocket','polling']});
+  socket.on('connect',()=>{ /* connected */ });
+  socket.on('chat-message',msg=>{
+    const room=msg.room;
+    if(!state.conversations[room]) state.conversations[room]=[];
+    // avoid double-inserting our own message echoed back
+    if(msg.clientId===clientId && msg.fromSelf) return;
+    state.conversations[room].push({from: msg.sender===state.user.username?'me':'them', text:msg.text||'', image:msg.image||null, sender:msg.sender});
+    saveState();
+    if(state.chatView==='thread'&&state.chatWith&&roomId(state.user.username,state.chatWith.seller,state.chatWith.listingId)===room){
+      renderChatThread();
+    }
+    if(state.chatView==='list') renderConvList();
+  });
 }
-function openChatWith(w){
+const clientId = Math.random().toString(36).slice(2);
+
+function ensureConv(room){
+  if(!state.conversations[room]) state.conversations[room]=[];
+  return state.conversations[room];
+}
+
+// chatWith is now an object: {seller, listingId, listingTitle}
+function openChatWith(seller,listing){
   if(!state.user){openAuth(); return;}
-  if(w===state.user.username){toast("That's you."); return;}
-  ensureConv(w); state.chatWith=w; state.chatView='thread';
+  if(seller===state.user.username){toast("That's you."); return;}
+  const purchase=state.purchases[purchaseKey(state.user.username,listing)];
+  if(!purchase){toast('Buy this listing first — messaging unlocks after purchase.'); return;}
+  state.chatWith={seller,listingId:listing.id,listingTitle:listing.title};
+  state.chatView='thread';
+  connectSocket();
+  const room=roomId(state.user.username,seller,listing.id);
+  if(socket) socket.emit('join-room',{room});
   $('#chatPanel').classList.add('show'); renderChatThread();
 }
+function conversationList(){
+  // every purchase this user made, or every purchase made against their own listings (as seller)
+  const rooms=[];
+  Object.values(state.purchases).forEach(p=>{
+    if(p.buyer===state.user.username) rooms.push({seller:p.seller,listingId:p.listingId,listingTitle:p.listingTitle,withName:p.seller});
+    if(p.seller===state.user.username) rooms.push({seller:p.seller,listingId:p.listingId,listingTitle:p.listingTitle,withName:p.buyer,asSeller:true,buyer:p.buyer});
+  });
+  return rooms;
+}
 function renderConvList(){
-  const names=Object.keys(state.conversations),body=$('#convList');
-  if(!names.length){body.innerHTML='<div class="empty-state">No conversations yet.</div>'; return;}
+  const rooms=conversationList(), body=$('#convList');
+  if(!rooms.length){body.innerHTML='<div class="empty-state">No conversations yet — buy a listing to start one.</div>'; return;}
   body.innerHTML='';
-  names.forEach(n=>{
-    const last=state.conversations[n].slice(-1)[0];
+  rooms.forEach(r=>{
+    const room=r.asSeller?roomId(r.buyer,state.user.username,r.listingId):roomId(state.user.username,r.seller,r.listingId);
+    const conv=state.conversations[room]||[];
+    const last=conv.slice(-1)[0];
     const row=document.createElement('div'); row.className='convitem';
-    row.innerHTML=`<div style="font-weight:600;font-size:12.5px;">${escHtml(n)}</div><div style="color:var(--muted);font-size:11px;">${escHtml((last?last.text:'').slice(0,36))}</div>`;
-    row.addEventListener('click',()=>{state.chatWith=n;state.chatView='thread';renderChatThread();});
+    row.innerHTML=`<div style="font-weight:600;font-size:12.5px;">${escHtml(r.withName)} <span style="color:var(--muted);font-weight:400;">· ${escHtml(r.listingTitle)}</span></div><div style="color:var(--muted);font-size:11px;">${last?(last.image?'📎 proof image':escHtml(last.text.slice(0,36))):'No messages yet'}</div>`;
+    row.addEventListener('click',()=>{
+      state.chatWith={seller:r.asSeller?state.user.username:r.seller, listingId:r.listingId, listingTitle:r.listingTitle, _withName:r.withName, _room:room};
+      state.chatView='thread';
+      connectSocket();
+      if(socket) socket.emit('join-room',{room});
+      renderChatThread();
+    });
     body.appendChild(row);
   });
 }
+function currentRoom(){
+  if(state.chatWith._room) return state.chatWith._room;
+  return roomId(state.user.username,state.chatWith.seller,state.chatWith.listingId);
+}
+function proofSentInRoom(room){
+  const conv=state.conversations[room]||[];
+  return conv.some(m=>m.image);
+}
 function renderChatThread(){
-  $('#chatHeadTitle').textContent=state.chatWith;
+  const room=currentRoom();
+  $('#chatHeadTitle').textContent=(state.chatWith._withName||state.chatWith.seller)+' · '+state.chatWith.listingTitle;
   $('#chatBack').style.display='inline-block';
   $('#convList').style.display='none';
   const body=$('#chatBody'); body.style.display='flex'; body.innerHTML='';
-  ensureConv(state.chatWith).forEach(m=>{
+  const conv=ensureConv(room);
+  const proofDone=proofSentInRoom(room);
+  if(!conv.length){
+    const hint=document.createElement('div'); hint.className='empty-state';
+    hint.textContent='Send a screenshot of your payment to the seller to unlock the chat.';
+    body.appendChild(hint);
+  }
+  conv.forEach(m=>{
     const d=document.createElement('div'); d.className='msg '+(m.from==='me'?'me':'them');
-    d.textContent=m.text; body.appendChild(d);
+    if(m.image){ d.innerHTML=`<img src="${m.image}" style="max-width:160px;border-radius:5px;display:block;">`; }
+    else { d.textContent=m.text; }
+    body.appendChild(d);
   });
   body.scrollTop=body.scrollHeight;
   $('#chatFoot').style.display='flex';
+  const textInput=$('#chatInput'), sendBtn=$('#chatSend');
+  textInput.disabled=!proofDone;
+  sendBtn.disabled=!proofDone;
+  textInput.placeholder=proofDone?'Message…':'Send proof of purchase first →';
 }
 function renderChatList(){
   $('#chatHeadTitle').textContent='Messages';
@@ -979,19 +1188,55 @@ $('#chatToggle').addEventListener('click',()=>{
 });
 $('#chatClose').addEventListener('click',()=>$('#chatPanel').classList.remove('show'));
 $('#chatBack').addEventListener('click',()=>{state.chatView='list';renderChatList();});
+
+function emitMessage(room,payload){
+  if(socket&&socket.connected){ socket.emit('chat-message',{room,...payload}); }
+}
 function sendChat(){
   if(!state.chatWith) return;
+  const room=currentRoom();
+  if(!proofSentInRoom(room)){ toast('Send proof of purchase before messaging.'); return; }
   const inp=$('#chatInput'),val=inp.value.trim(); if(!val) return;
-  const conv=ensureConv(state.chatWith);
-  conv.push({from:'me',text:val}); inp.value=''; renderChatThread(); saveState();
-  setTimeout(()=>{
-    conv.push({from:'them',text:"Got it, I'll get back to you shortly."});
-    if(state.chatView==='thread'&&state.chatWith) renderChatThread();
-    saveState();
-  },800);
+  const conv=ensureConv(room);
+  const msg={from:'me',text:val,sender:state.user.username};
+  conv.push(msg); inp.value=''; renderChatThread(); saveState();
+  emitMessage(room,{text:val,sender:state.user.username,fromSelf:true,clientId});
 }
 $('#chatSend').addEventListener('click',sendChat);
 $('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter') sendChat();});
+
+$('#chatAttach').addEventListener('click',()=>{
+  if(!state.chatWith){ toast('Open a conversation first.'); return; }
+  $('#chatImgInput').click();
+});
+$('#chatImgInput').addEventListener('change',()=>{
+  const file=$('#chatImgInput').files[0]; if(!file) return;
+  if(file.size>4*1024*1024){ toast('Image too large — max 4 MB'); return; }
+  const room=currentRoom();
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const conv=ensureConv(room);
+    const msg={from:'me',image:e.target.result,sender:state.user.username};
+    conv.push(msg); renderChatThread(); saveState();
+    emitMessage(room,{image:e.target.result,sender:state.user.username,fromSelf:true,clientId});
+    toast('Proof sent — chat unlocked.');
+  };
+  reader.readAsDataURL(file);
+  $('#chatImgInput').value='';
+});
+
+/* ── Hamburger / sidebar toggle ── */
+const hamburgerBtn=$('#hamburgerBtn'), sidebarEl=$('.sidebar');
+let sidebarOpen=true;
+function applySidebarState(){
+  hamburgerBtn.classList.toggle('open', sidebarOpen);       // X when open, lines when closed
+  sidebarEl.classList.toggle('collapsed', !sidebarOpen);
+}
+hamburgerBtn.addEventListener('click',()=>{
+  if(!state.user) return; // nothing to toggle for guests — sidebar is hidden entirely
+  sidebarOpen=!sidebarOpen;
+  applySidebarState();
+});
 
 /* ── Init ── */
 renderFilters(); renderShop(); renderSidebar(); renderGuestBanner();
